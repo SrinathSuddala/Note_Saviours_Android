@@ -25,5 +25,6 @@
     <string name="delete_note">Delete</string>
     <string name="notes_deleted">Note(s) Deleted</string>
     <string name="capture">Capture</string>
+    <string name="note_category_hint">Enter Category for the Note</string>
 
 </resources>

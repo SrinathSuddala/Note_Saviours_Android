@@ -3,7 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" >
+    android:orientation="vertical">
+
+    <EditText
+        android:id="@+id/note_category"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/note_category_hint" />
 
     <EditText
         android:id="@+id/note_title"
@@ -16,29 +22,29 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:inputType="textMultiLine"
         android:gravity="top"
-        android:hint="@string/note_text_hint" />
+        android:hint="@string/note_text_hint"
+        android:inputType="textMultiLine" />
 
     <TextView
+        style="?android:listSeparatorTextViewStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/note_media"
-        style="?android:listSeparatorTextViewStyle" />
+        android:text="@string/note_media" />
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:orientation="horizontal" >
+        android:orientation="horizontal">
 
         <ImageView
             android:id="@+id/note_imageView"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:scaleType="centerInside"
             android:background="@android:color/darker_gray"
-            android:cropToPadding="true" />
+            android:cropToPadding="true"
+            android:scaleType="centerInside" />
 
         <ImageButton
             android:id="@+id/note_imageButton"
@@ -51,41 +57,48 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="@string/note_record" />
+            android:layout_marginRight="@dimen/activity_horizontal_margin"
+            android:background="@color/colorPrimaryDark"
+            android:text="@string/note_record"
+            android:textColor="@android:color/white" />
 
         <Button
             android:id="@+id/note_play_pause"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/note_play" />
+            android:background="@color/colorPrimaryDark"
+            android:text="@string/note_play"
+            android:textColor="@android:color/white" />
 
     </LinearLayout>
 
     <TextView
+        style="?android:listSeparatorTextViewStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/note_details_label"
-        style="?android:listSeparatorTextViewStyle" />
+        android:text="@string/note_details_label" />
 
     <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="16dp"
-            android:layout_marginRight="16dp" >
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:orientation="horizontal">
 
         <Button
-                android:id="@+id/note_date"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="4" />
+            android:id="@+id/note_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="4"
+            android:background="@color/colorPrimaryDark"
+            android:textColor="@android:color/white" />
 
         <CheckBox
-                android:id="@+id/note_complete"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/note_complete_label"
-                android:layout_weight="1" />
+            android:id="@+id/note_complete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/note_complete_label" />
     </LinearLayout>
 
 </LinearLayout>

@@ -35,6 +35,7 @@ import java.util.UUID;
 public class NoteFragment extends Fragment {
 
     private Note mNote;
+    private EditText mCategoryField;
     private EditText mTitleField;
     private EditText mContentField;
     private Button mDateButton;
@@ -153,6 +154,33 @@ public class NoteFragment extends Fragment {
             }
         }
 */
+        mCategoryField = (EditText)view.findViewById(R.id.note_category);
+        mCategoryField.setText(mNote.getCategory());
+        mCategoryField.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s,
+                                          int start,
+                                          int count,
+                                          int after) {
+                // This space intentionally left blank
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s,
+                                      int start,
+                                      int before,
+                                      int count) {
+                mNote.setCategory(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                // This space intentionally left blank
+            }
+        });
+
+
+
         mTitleField = (EditText)view.findViewById(R.id.note_title);
         mTitleField.setText(mNote.getTitle());
         mTitleField.addTextChangedListener(new TextWatcher() {
@@ -256,7 +284,7 @@ public class NoteFragment extends Fragment {
         mPlayButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mAudioPlayer.isPlaying()) {
+                if (mPlayButton.getText().toString().equalsIgnoreCase("Stop")) {
                     mAudioPlayer.stop();
                     setPlayAudioButtonText();
                 } else {

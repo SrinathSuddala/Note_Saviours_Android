@@ -10,6 +10,7 @@ public class Note {
 
     private UUID mId;
     private String mTitle;
+    private String mCategory;
     private String mContent;
     private String mAudioFilename;
     private Date mDate;
@@ -17,6 +18,7 @@ public class Note {
     private boolean mComplete;
 
     private static final String JSON_ID = "id";
+    private static final String JSON_CATEGORY = "category";
     private static final String JSON_TITLE = "title";
     private static final String JSON_CONTENT = "content";
     private static final String JSON_AUDIO_FILENAME = "audio_filename";
@@ -34,6 +36,9 @@ public class Note {
     public Note(JSONObject json) throws JSONException {
         mId  = UUID.fromString(json.getString(JSON_ID));
 
+        if (json.has(JSON_CATEGORY)) {
+            mCategory = json.getString(JSON_CATEGORY);
+        }
         if (json.has(JSON_TITLE)) {
             mTitle = json.getString(JSON_TITLE);
         }
@@ -60,6 +65,7 @@ public class Note {
         JSONObject json = new JSONObject();
         json.put(JSON_ID, mId.toString());
         json.put(JSON_TITLE, mTitle);
+        json.put(JSON_CATEGORY, mCategory);
         json.put(JSON_CONTENT, mContent);
         json.put(JSON_AUDIO_FILENAME, mAudioFilename);
         json.put(JSON_COMPLETE, mComplete);
@@ -121,4 +127,13 @@ public class Note {
     public void setPhoto(Photo photo) {
         mPhoto = photo;
     }
+
+    public String getCategory() {
+        return mCategory;
+    }
+
+    public void setCategory(String mCategory) {
+        this.mCategory = mCategory;
+    }
+
 }

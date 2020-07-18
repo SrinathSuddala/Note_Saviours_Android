@@ -33,6 +33,8 @@ import androidx.fragment.app.ListFragment;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -41,6 +43,7 @@ public class NoteListFragment extends ListFragment {
     private boolean mSubtitleVisible;
     private static final int PERMISSION_REQUESTS = 1;
     private static final String TAG = "NoteListFragment";
+    private NoteAdapter adapter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -52,7 +55,7 @@ public class NoteListFragment extends ListFragment {
         getActivity().setTitle(R.string.notes_title);
         mNotes = Notebook.getInstance(getActivity()).getNotes();
 
-        NoteAdapter adapter = new NoteAdapter(mNotes);
+        adapter = new NoteAdapter(mNotes);
         setListAdapter(adapter);
     }
 
@@ -164,11 +167,6 @@ public class NoteListFragment extends ListFragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.fragment_note_list, menu);
-
-        MenuItem showSubtitle = menu.findItem(R.id.menu_item_show_subtitle);
-        if (mSubtitleVisible && showSubtitle != null) {
-            showSubtitle.setTitle(R.string.hide_subtitle);
-        }
     }
 
     @Override
@@ -211,11 +209,11 @@ public class NoteListFragment extends ListFragment {
     @TargetApi(11)
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        boolean selectionHandled;
+        boolean selectionHandled = false;
 
         switch (item.getItemId()) {
             case R.id.menu_item_new_note:
-                Note note = new Note();
+                final Note note = new Note();
                 Notebook.getInstance(getActivity()).addNote(note);
 
                 Intent intent =
@@ -225,17 +223,23 @@ public class NoteListFragment extends ListFragment {
 
                 selectionHandled = true;
                 break;
-            case R.id.menu_item_show_subtitle:
-                if (getActivity().getActionBar().getSubtitle() == null) {
-                    getActivity().getActionBar().setSubtitle(R.string.subtitle);
-                    mSubtitleVisible = true;
-                    item.setTitle(R.string.hide_subtitle);
-                } else {
-                    getActivity().getActionBar().setSubtitle(null);
-                    mSubtitleVisible = false;
-                    item.setTitle(R.string.show_subtitle);
-                }
-                selectionHandled = true;
+            case R.id.menu_item_category_sort:
+                Collections.sort(mNotes, new Comparator<Note>() {
+                    @Override
+                    public int compare(Note o1, Note o2) {
+                        return o1.getCategory().compareTo(o2.getCategory());
+                    }
+                });
+                adapter.notifyDataSetChanged();
+                break;
+            case R.id.menu_item_datetime_sort:
+                Collections.sort(mNotes, new Comparator<Note>() {
+                    @Override
+                    public int compare(Note o1, Note o2) {
+                        return o2.getDate().compareTo(o1.getDate());
+                    }
+                });
+                adapter.notifyDataSetChanged();
                 break;
             default:
                 selectionHandled = super.onOptionsItemSelected(item);

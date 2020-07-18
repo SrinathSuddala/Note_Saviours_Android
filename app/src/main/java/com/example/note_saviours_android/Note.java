@@ -3,17 +3,18 @@ package com.example.note_saviours_android;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.UUID;
 
 public class Note {
 
     private UUID mId;
-    private String mTitle;
-    private String mCategory;
-    private String mContent;
+    private String mTitle = "";
+    private String mCategory = "";
+    private String mContent = "";
     private String mAudioFilename;
-    private Date mDate;
+    private Date mDate = new Date(Calendar.getInstance().getTimeInMillis());
     private Photo mPhoto;
     private boolean mComplete;
 

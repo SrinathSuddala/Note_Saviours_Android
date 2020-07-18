@@ -218,6 +218,7 @@ public class NoteListFragment extends ListFragment {
                 Intent intent =
                         new Intent(getActivity(), NotePagerActivity.class);
                 intent.putExtra(NoteFragment.EXTRA_NOTE_ID, note.getId());
+                intent.putExtra("isNewNote", true);
                 startActivityForResult(intent, 0);
 
                 selectionHandled = true;

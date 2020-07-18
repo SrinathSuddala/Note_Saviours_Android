@@ -20,6 +20,7 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -27,6 +28,8 @@ import androidx.core.app.NavUtils;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
+
+import com.google.android.gms.maps.model.LatLng;
 
 import java.text.DateFormat;
 import java.util.Date;
@@ -46,13 +49,15 @@ public class NoteFragment extends Fragment {
     private AudioRecorder mAudioRecorder;
     private ImageButton mPhotoButton;
     private ImageView mPhotoView;
+    private RelativeLayout rlLocation;
+    private boolean isNewNote;
 
     private static StringBuffer mAudioFileName;
 
     private static final String TAG = "NoteFragment";
 
     public static final String EXTRA_NOTE_ID =
-        "com.saviours.android.notes.note_id";
+            "com.saviours.android.notes.note_id";
 
     private static final String AUDIO_POS_INDEX = "audio_pos_index";
     private static final String DIALOG_IMAGE = "image";
@@ -60,15 +65,17 @@ public class NoteFragment extends Fragment {
     private static final String DIALOG_DATE = "date";
     private static final int REQUEST_DATE = 0;
     private static final int REQUEST_PHOTO = 1;
+    private double currLat = -1, currLng = -1;
 
-    public static NoteFragment newInstance(UUID noteId) {
-    // Attaching arguments to a fragment must be done after the fragment
-    // is created but before it is added to an activity.
-    // This function uses the standard convention, call this function
-    // instead of the constructor directly.
-    // TODO: Should the constructor be marked as private?
+    public static NoteFragment newInstance(UUID noteId, boolean isNewNote) {
+        // Attaching arguments to a fragment must be done after the fragment
+        // is created but before it is added to an activity.
+        // This function uses the standard convention, call this function
+        // instead of the constructor directly.
+        // TODO: Should the constructor be marked as private?
         Bundle args = new Bundle();
         args.putSerializable(EXTRA_NOTE_ID, noteId);
+        args.putBoolean("isNewNote", isNewNote);
 
         NoteFragment fragment = new NoteFragment();
         fragment.setArguments(args);
@@ -78,34 +85,34 @@ public class NoteFragment extends Fragment {
 
     private void setPlayAudioButtonText() {
         mPlayButton.setText(getResources()
-            .getString(R.string.note_play));
+                .getString(R.string.note_play));
     }
 
     private void setStopAudioButtonText() {
         mPlayButton.setText(getResources()
-            .getString(R.string.note_stop));
+                .getString(R.string.note_stop));
     }
 
     private void setStartRecordingButtonText() {
         mRecordButton.setText(getResources()
-            .getString(R.string.note_record));
+                .getString(R.string.note_record));
     }
 
     private void setStopRecordingButtonText() {
         mRecordButton.setText(getResources()
-            .getString(R.string.note_stop));
+                .getString(R.string.note_stop));
     }
 
     private void setFormattedDateButton(FragmentActivity activity) {
         if (activity != null) {
             Date date = mNote.getDate();
             DateFormat dateFormat = android.text.format.DateFormat
-                .getDateFormat(activity.getApplicationContext());
+                    .getDateFormat(activity.getApplicationContext());
             DateFormat timeFormat = android.text.format.DateFormat
                     .getTimeFormat(activity.getApplicationContext());
             mDateButton.setText(dateFormat.format(date) +
-                                " " +
-                                timeFormat.format(date));
+                    " " +
+                    timeFormat.format(date));
         }
     }
 
@@ -114,7 +121,10 @@ public class NoteFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
 
-        UUID noteId = (UUID)getArguments().getSerializable(EXTRA_NOTE_ID);
+        UUID noteId = (UUID) getArguments().getSerializable(EXTRA_NOTE_ID);
+        if (getArguments().containsKey("isNewNote")) {
+            isNewNote = getArguments().getBoolean("isNewNote");
+        }
         mNote = Notebook.getInstance(getActivity()).getNote(noteId);
     }
 
@@ -129,7 +139,7 @@ public class NoteFragment extends Fragment {
         // This is also written to external storage, whereas
         // the notes are saved to internal memory
         mAudioFileName = new StringBuffer(Environment
-            .getExternalStorageDirectory().getAbsolutePath());
+                .getExternalStorageDirectory().getAbsolutePath());
         mAudioFileName
                 .append("/")
                 .append(mNote.getTitle())
@@ -143,8 +153,8 @@ public class NoteFragment extends Fragment {
 
         // Inflated view is added to parent in the activity code
         View view = inflater.inflate(R.layout.fragment_note,
-                                  parent,
-                                  false);
+                parent,
+                false);
 
         setHasOptionsMenu(true);
 
@@ -154,7 +164,29 @@ public class NoteFragment extends Fragment {
             }
         }
 */
-        mCategoryField = (EditText)view.findViewById(R.id.note_category);
+
+        rlLocation = view.findViewById(R.id.rlLocation);
+        rlLocation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mNote.getLatLng().latitude == -1 && mNote.getLatLng().longitude == -1) {
+                    Toast.makeText(getActivity(), "No location added while creating the notes", Toast.LENGTH_LONG).show();
+                } else {
+                    Intent intent = new Intent(getActivity(), MapsActivity.class);
+                    intent.putExtra("lat", mNote.getLatLng().latitude);
+                    intent.putExtra("lng", mNote.getLatLng().longitude);
+                    startActivity(intent);
+                }
+            }
+        });
+        if (isNewNote){
+            GPSTracker gps = new GPSTracker(getActivity());
+            currLat = gps.getLatitude();
+            currLng = gps.getLongitude();
+            mNote.setLatLng(new LatLng(currLat, currLng));
+        }
+        rlLocation.setVisibility(isNewNote ? View.GONE : View.VISIBLE);
+        mCategoryField = (EditText) view.findViewById(R.id.note_category);
         mCategoryField.setText(mNote.getCategory());
         mCategoryField.addTextChangedListener(new TextWatcher() {
             @Override
@@ -180,8 +212,7 @@ public class NoteFragment extends Fragment {
         });
 
 
-
-        mTitleField = (EditText)view.findViewById(R.id.note_title);
+        mTitleField = (EditText) view.findViewById(R.id.note_title);
         mTitleField.setText(mNote.getTitle());
         mTitleField.addTextChangedListener(new TextWatcher() {
             @Override
@@ -206,7 +237,7 @@ public class NoteFragment extends Fragment {
             }
         });
 
-        mContentField = (EditText)view.findViewById(R.id.note_content);
+        mContentField = (EditText) view.findViewById(R.id.note_content);
         mContentField.setText(mNote.getContent());
         mContentField.addTextChangedListener(new TextWatcher() {
             @Override
@@ -231,14 +262,14 @@ public class NoteFragment extends Fragment {
             }
         });
 
-        mDateButton = (Button)view.findViewById(R.id.note_date);
+        mDateButton = (Button) view.findViewById(R.id.note_date);
         setFormattedDateButton(getActivity());
         mDateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 FragmentManager fm = getActivity().getSupportFragmentManager();
                 DatePickerFragment dialog = DatePickerFragment
-                    .newInstance(mNote.getDate());
+                        .newInstance(mNote.getDate());
 
                 // We want to get the selected date back from the dialog
                 dialog.setTargetFragment(NoteFragment.this, REQUEST_DATE);
@@ -246,7 +277,7 @@ public class NoteFragment extends Fragment {
             }
         });
 
-        mCompleteCheckBox = (CheckBox)view.findViewById(R.id.note_complete);
+        mCompleteCheckBox = (CheckBox) view.findViewById(R.id.note_complete);
         mCompleteCheckBox.setChecked(mNote.isComplete());
         mCompleteCheckBox.setOnCheckedChangeListener(
                 new CompoundButton.OnCheckedChangeListener() {
@@ -257,7 +288,7 @@ public class NoteFragment extends Fragment {
                     }
                 });
 
-        mRecordButton = (Button)view.findViewById(R.id.note_record);
+        mRecordButton = (Button) view.findViewById(R.id.note_record);
         mRecordButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -273,14 +304,14 @@ public class NoteFragment extends Fragment {
                     }
                 } else {
                     Toast.makeText(getActivity(),
-                                   getResources()
-                                       .getString(R.string.error_no_mic),
-                                   Toast.LENGTH_LONG).show();
+                            getResources()
+                                    .getString(R.string.error_no_mic),
+                            Toast.LENGTH_LONG).show();
                 }
             }
         });
 
-        mPlayButton = (Button)view.findViewById(R.id.note_play_pause);
+        mPlayButton = (Button) view.findViewById(R.id.note_play_pause);
         mPlayButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -294,27 +325,27 @@ public class NoteFragment extends Fragment {
             }
         });
 
-        mPhotoButton = (ImageButton)view.findViewById(R.id.note_imageButton);
+        mPhotoButton = (ImageButton) view.findViewById(R.id.note_imageButton);
         mPhotoButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 PackageManager pm = getActivity().getPackageManager();
 
                 boolean hasCamera =
-                    pm.hasSystemFeature(PackageManager.FEATURE_CAMERA) ||
-                    pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT) ||
-                    (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD &&
-                    Camera.getNumberOfCameras() > 0);
+                        pm.hasSystemFeature(PackageManager.FEATURE_CAMERA) ||
+                                pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT) ||
+                                (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD &&
+                                        Camera.getNumberOfCameras() > 0);
 
                 if (hasCamera) {
                     Intent intent = new Intent(getActivity(),
-                                               NoteCameraActivity.class);
+                            NoteCameraActivity.class);
                     startActivityForResult(intent, REQUEST_PHOTO);
                 } else {
                     Toast.makeText(getActivity(),
-                                   getResources()
-                                       .getString(R.string.error_no_camera),
-                                   Toast.LENGTH_LONG).show();
+                            getResources()
+                                    .getString(R.string.error_no_camera),
+                            Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -326,15 +357,14 @@ public class NoteFragment extends Fragment {
 
                 if (photo != null) {
                     FragmentManager fm = getActivity()
-                        .getSupportFragmentManager();
+                            .getSupportFragmentManager();
                     String path = getActivity().getFileStreamPath(
-                        photo.getFileName()).getAbsolutePath();
+                            photo.getFileName()).getAbsolutePath();
                     ImageFragment.newInstance(path)
-                        .show(fm, DIALOG_IMAGE);
+                            .show(fm, DIALOG_IMAGE);
                 }
             }
         });
-
 
         return view;
     }
@@ -343,14 +373,14 @@ public class NoteFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == AppCompatActivity.RESULT_OK) {
             if (requestCode == REQUEST_DATE) {
-                Date date = (Date)data
-                    .getSerializableExtra(DatePickerFragment.EXTRA_DATE);
+                Date date = (Date) data
+                        .getSerializableExtra(DatePickerFragment.EXTRA_DATE);
                 mNote.setDate(date);
                 setFormattedDateButton(getActivity());
             } else if (requestCode == REQUEST_PHOTO) {
                 // Create a new photo object and attach it to the note
                 String fileName = data
-                    .getStringExtra(NoteCameraFragment.EXTRA_PHOTO_FILENAME);
+                        .getStringExtra(NoteCameraFragment.EXTRA_PHOTO_FILENAME);
                 if (fileName != null) {
                     Photo photo = new Photo(fileName);
                     mNote.setPhoto(photo);
@@ -402,9 +432,9 @@ public class NoteFragment extends Fragment {
 
         if (!success) {
             Toast.makeText(getActivity(),
-                           getResources()
-                                   .getString(R.string.error_saving),
-                           Toast.LENGTH_LONG).show();
+                    getResources()
+                            .getString(R.string.error_saving),
+                    Toast.LENGTH_LONG).show();
         }
     }
 
@@ -427,9 +457,9 @@ public class NoteFragment extends Fragment {
 
         if (photo != null) {
             String path = getActivity()
-                .getFileStreamPath(photo.getFileName()).getAbsolutePath();
+                    .getFileStreamPath(photo.getFileName()).getAbsolutePath();
             bitmapDrawable = PictureUtils.getScaledDrawable((AppCompatActivity) getActivity(),
-                                                            path);
+                    path);
         }
 
         mPhotoView.setImageDrawable(bitmapDrawable);

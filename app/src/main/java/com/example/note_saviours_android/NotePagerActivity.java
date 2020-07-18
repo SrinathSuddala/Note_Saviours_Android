@@ -11,10 +11,10 @@ import androidx.viewpager.widget.ViewPager;
 import java.util.ArrayList;
 import java.util.UUID;
 
-public class NotePagerActivity extends AppCompatActivity
-{
+public class NotePagerActivity extends AppCompatActivity {
     private ViewPager mViewPager;
     private ArrayList<Note> mNotes;
+    private boolean isNewNote;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -29,6 +29,9 @@ public class NotePagerActivity extends AppCompatActivity
         setContentView(mViewPager);
 
         mNotes = Notebook.getInstance(this).getNotes();
+        if (getIntent() != null && getIntent().getExtras() != null && getIntent().getExtras().containsKey("isNewNote")) {
+            isNewNote = getIntent().getExtras().getBoolean("isNewNote");
+        }
 
         FragmentManager fm = getSupportFragmentManager();
 
@@ -39,7 +42,7 @@ public class NotePagerActivity extends AppCompatActivity
             @Override
             public Fragment getItem(int position) {
                 Note note = mNotes.get(position);
-                return NoteFragment.newInstance((note.getId()));
+                return NoteFragment.newInstance((note.getId()), isNewNote);
             }
 
             @Override
@@ -51,8 +54,8 @@ public class NotePagerActivity extends AppCompatActivity
         // By default, ViewPager shows the first item in its PagerAdapter.
         // We have to loop through to find a matching index to show
         // the selected item
-        UUID noteId = (UUID)getIntent()
-            .getSerializableExtra(NoteFragment.EXTRA_NOTE_ID);
+        UUID noteId = (UUID) getIntent()
+                .getSerializableExtra(NoteFragment.EXTRA_NOTE_ID);
 
         int numNotes = mNotes.size();
         Note note;
@@ -72,24 +75,24 @@ public class NotePagerActivity extends AppCompatActivity
         // OnPageChangeListener is how you listen for changes in the page
         // currently being displayed by ViewPager
         mViewPager.setOnPageChangeListener
-            (new ViewPager.OnPageChangeListener() {
-            public void onPageScrollStateChanged(int state) {
-                // This space intentionally left blank
-            }
+                (new ViewPager.OnPageChangeListener() {
+                    public void onPageScrollStateChanged(int state) {
+                        // This space intentionally left blank
+                    }
 
-            public void onPageScrolled(int pos,
-                                       float posOffset,
-                                       int posOffsetPixels) {
-                // This space intentionally left blank
-            }
+                    public void onPageScrolled(int pos,
+                                               float posOffset,
+                                               int posOffsetPixels) {
+                        // This space intentionally left blank
+                    }
 
-            public void onPageSelected(int pos) {
-                Note note = mNotes.get(pos);
+                    public void onPageSelected(int pos) {
+                        Note note = mNotes.get(pos);
 
-                if (note.getTitle() != null) {
-                    setTitle(note.getTitle());
-                }
-            }
-        });
+                        if (note.getTitle() != null) {
+                            setTitle(note.getTitle());
+                        }
+                    }
+                });
     }
 }

@@ -6,6 +6,7 @@ import org.json.JSONObject;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.UUID;
+import com.google.android.gms.maps.model.LatLng;
 
 public class Note {
 
@@ -17,6 +18,7 @@ public class Note {
     private Date mDate = new Date(Calendar.getInstance().getTimeInMillis());
     private Photo mPhoto;
     private boolean mComplete;
+    private LatLng latLng = new LatLng(-1, -1);
 
     private static final String JSON_ID = "id";
     private static final String JSON_CATEGORY = "category";
@@ -26,6 +28,8 @@ public class Note {
     private static final String JSON_COMPLETE = "complete";
     private static final String JSON_DATE = "date";
     private static final String JSON_PHOTO = "photo";
+    private static final String JSON_LAT = "lat";
+    private static final String JSON_LNG = "lng";
 
     public Note() {
 
@@ -52,6 +56,9 @@ public class Note {
         if (json.has(JSON_PHOTO)) {
             mPhoto = new Photo(json.getJSONObject(JSON_PHOTO));
         }
+        if (json.has(JSON_LAT) && json.has(JSON_LNG)) {
+            latLng = new LatLng(json.getDouble(JSON_LAT), json.getDouble(JSON_LNG));
+        }
 
         mComplete = json.getBoolean(JSON_COMPLETE);
         mDate = new Date(json.getLong(JSON_DATE));
@@ -73,6 +80,10 @@ public class Note {
         json.put(JSON_DATE, mDate.getTime());
         if (mPhoto != null) {
             json.put(JSON_PHOTO, mPhoto.toJSON());
+        }
+        if (latLng != null) {
+            json.put(JSON_LAT, latLng.latitude);
+            json.put(JSON_LNG, latLng.longitude);
         }
         return json;
     }
@@ -137,4 +148,11 @@ public class Note {
         this.mCategory = mCategory;
     }
 
+    public LatLng getLatLng() {
+        return latLng;
+    }
+
+    public void setLatLng(LatLng latLng) {
+        this.latLng = latLng;
+    }
 }

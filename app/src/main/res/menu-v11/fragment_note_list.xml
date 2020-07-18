@@ -1,11 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/menu_item_new_note"
-          android:icon="@android:drawable/ic_menu_add"
-          android:title="@string/new_note"
-          android:showAsAction="ifRoom|withText"/>
-    <item android:id="@+id/menu_item_show_subtitle"
-          android:title="@string/show_subtitle"
-          android:showAsAction="never" />
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_item_new_note"
+        android:icon="@android:drawable/ic_menu_add"
+        android:title="@string/new_note"
+        app:showAsAction="ifRoom|withText" />
+    <item
+        android:id="@+id/menu_item_category_sort"
+        android:title="@string/category_sort"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_item_datetime_sort"
+        android:title="@string/datetime_sort"
+        app:showAsAction="never" />
 </menu>
 

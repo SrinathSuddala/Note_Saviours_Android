@@ -3,6 +3,9 @@ package com.example.note_saviours_android;
 import android.content.Context;
 import android.util.Log;
 
+import org.json.JSONException;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -65,6 +68,13 @@ public class Notebook {
 
     public void deleteNote(Note note) {
         mNotes.remove(note);
+        try {
+            mSerializer.saveNotes(mNotes);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public Note getNote(UUID id) {

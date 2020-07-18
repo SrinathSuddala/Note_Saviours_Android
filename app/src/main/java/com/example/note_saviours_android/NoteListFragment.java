@@ -1,9 +1,14 @@
 package com.example.note_saviours_android;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ActionMode;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
@@ -21,17 +26,21 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.ListFragment;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
-public class NoteListFragment extends ListFragment
-{
+public class NoteListFragment extends ListFragment {
     private ArrayList<Note> mNotes;
     private boolean mSubtitleVisible;
+    private static final int PERMISSION_REQUESTS = 1;
+    private static final String TAG = "NoteListFragment";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -59,7 +68,9 @@ public class NoteListFragment extends ListFragment
                 getActivity().getActionBar().setSubtitle(R.string.subtitle);
             }
         }
-
+        if (!allPermissionsGranted()) {
+            getRuntimePermissions();
+        }
         // getListView() will also retrieve the view, but returns null
         // until after onCreateView returns
         ListView listView = (ListView) view.findViewById(android.R.id.list);
@@ -71,79 +82,79 @@ public class NoteListFragment extends ListFragment
             // Use contextual action bar on Honeycomb and higher
             listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
             listView.setMultiChoiceModeListener(
-                new AbsListView.MultiChoiceModeListener() {
-                @Override
-                public void onItemCheckedStateChanged(ActionMode mode,
-                                                      int position,
-                                                      long id,
-                                                      boolean checked) {
-                    // This space intentionally left blank
-                }
+                    new AbsListView.MultiChoiceModeListener() {
+                        @Override
+                        public void onItemCheckedStateChanged(ActionMode mode,
+                                                              int position,
+                                                              long id,
+                                                              boolean checked) {
+                            // This space intentionally left blank
+                        }
 
-                @Override
-                public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-                    // Called when ActionMode is created to inflate the menu
-                    // Use the inflater from the action mode rather than the
-                    // activity, because it has details for configuring
-                    // the contextual action bar
-                    MenuInflater inflater = mode.getMenuInflater();
-                    inflater.inflate(R.menu.note_list_item_context, menu);
-                    return true;
-                }
+                        @Override
+                        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+                            // Called when ActionMode is created to inflate the menu
+                            // Use the inflater from the action mode rather than the
+                            // activity, because it has details for configuring
+                            // the contextual action bar
+                            MenuInflater inflater = mode.getMenuInflater();
+                            inflater.inflate(R.menu.note_list_item_context, menu);
+                            return true;
+                        }
 
-                @Override
-                public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-                    // Called after onCreateActionMode and whenever an existing
-                    // contextual action bar needs to be refreshed with new data
-                    // This space intentionally left blank
-                    return false;
-                }
+                        @Override
+                        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+                            // Called after onCreateActionMode and whenever an existing
+                            // contextual action bar needs to be refreshed with new data
+                            // This space intentionally left blank
+                            return false;
+                        }
 
-                @Override
-                public boolean onActionItemClicked(ActionMode mode,
-                                                   MenuItem item) {
-                    // Called when the user selects an action
-                    boolean selectionHandled;
+                        @Override
+                        public boolean onActionItemClicked(ActionMode mode,
+                                                           MenuItem item) {
+                            // Called when the user selects an action
+                            boolean selectionHandled;
 
-                    switch (item.getItemId()) {
-                        case R.id.menu_item_delete_note:
-                            NoteAdapter adapter =
-                                (NoteAdapter)getListAdapter();
-                            Notebook notebook =
-                                Notebook.getInstance(getActivity());
+                            switch (item.getItemId()) {
+                                case R.id.menu_item_delete_note:
+                                    NoteAdapter adapter =
+                                            (NoteAdapter) getListAdapter();
+                                    Notebook notebook =
+                                            Notebook.getInstance(getActivity());
 
-                            for (int i = adapter.getCount() - 1; i >= 0; i--) {
-                                if (getListView().isItemChecked(i)) {
-                                    notebook.deleteNote(adapter.getItem(i));
-                                }
+                                    for (int i = adapter.getCount() - 1; i >= 0; i--) {
+                                        if (getListView().isItemChecked(i)) {
+                                            notebook.deleteNote(adapter.getItem(i));
+                                        }
+                                    }
+
+                                    Toast
+                                            .makeText(getActivity(),
+                                                    getResources()
+                                                            .getString(R.string.notes_deleted),
+                                                    Toast.LENGTH_LONG).show();
+
+                                    // Prepare the action mode to be destroyed
+                                    mode.finish();
+                                    adapter.notifyDataSetChanged();
+                                    selectionHandled = true;
+                                    break;
+                                default:
+                                    selectionHandled = false;
+                                    break;
                             }
 
-                            Toast
-                                .makeText(getActivity(),
-                                          getResources()
-                                            .getString(R.string.notes_deleted),
-                                          Toast.LENGTH_LONG).show();
+                            return selectionHandled;
+                        }
 
-                            // Prepare the action mode to be destroyed
-                            mode.finish();
-                            adapter.notifyDataSetChanged();
-                            selectionHandled = true;
-                            break;
-                        default:
-                            selectionHandled = false;
-                            break;
-                    }
-
-                    return selectionHandled;
-                }
-
-                @Override
-                public void onDestroyActionMode(ActionMode mode) {
-                    // Called when ActionMode is about the be destroyed from
-                    // the user cancelling or the action being responded to
-                    // This space intentionally left blank
-                }
-            });
+                        @Override
+                        public void onDestroyActionMode(ActionMode mode) {
+                            // Called when ActionMode is about the be destroyed from
+                            // the user cancelling or the action being responded to
+                            // This space intentionally left blank
+                        }
+                    });
         }
 
         return view;
@@ -170,7 +181,7 @@ public class NoteListFragment extends ListFragment
                                     View view,
                                     ContextMenu.ContextMenuInfo menuInfo) {
         getActivity().getMenuInflater().inflate(R.menu.note_list_item_context,
-                                                menu);
+                menu);
     }
 
     @Override
@@ -178,9 +189,9 @@ public class NoteListFragment extends ListFragment
         boolean selectionHandled;
 
         AdapterView.AdapterContextMenuInfo info =
-            (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+                (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
         int position = info.position;
-        NoteAdapter adapter = (NoteAdapter)getListAdapter();
+        NoteAdapter adapter = (NoteAdapter) getListAdapter();
         Note note = adapter.getItem(position);
 
         switch (item.getItemId()) {
@@ -208,7 +219,7 @@ public class NoteListFragment extends ListFragment
                 Notebook.getInstance(getActivity()).addNote(note);
 
                 Intent intent =
-                    new Intent(getActivity(), NotePagerActivity.class);
+                        new Intent(getActivity(), NotePagerActivity.class);
                 intent.putExtra(NoteFragment.EXTRA_NOTE_ID, note.getId());
                 startActivityForResult(intent, 0);
 
@@ -236,7 +247,7 @@ public class NoteListFragment extends ListFragment
 
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
-        Note note = ((NoteAdapter)getListAdapter()).getItem(position);
+        Note note = ((NoteAdapter) getListAdapter()).getItem(position);
 
         // Start NotePagerActivity with this note
         // NoteListFragment uses getActivity() to pass its hosting
@@ -251,7 +262,7 @@ public class NoteListFragment extends ListFragment
         // Update the list view onResume,
         // as it might have been paused not killed
         super.onResume();
-        ((NoteAdapter)getListAdapter()).notifyDataSetChanged();
+        ((NoteAdapter) getListAdapter()).notifyDataSetChanged();
     }
 
     private class NoteAdapter extends ArrayAdapter<Note> {
@@ -273,8 +284,8 @@ public class NoteListFragment extends ListFragment
                 DateFormat timeFormat = android.text.format.DateFormat
                         .getTimeFormat(activity.getApplicationContext());
                 formattedDate = dateFormat.format(date) +
-                                " " +
-                                timeFormat.format(date);
+                        " " +
+                        timeFormat.format(date);
             }
 
             return formattedDate;
@@ -306,4 +317,55 @@ public class NoteListFragment extends ListFragment
             return convertView;
         }
     }
+
+    private void getRuntimePermissions() {
+        List<String> allNeededPermissions = new ArrayList<>();
+        for (String permission : getRequiredPermissions()) {
+            if (!isPermissionGranted(getActivity(), permission)) {
+                allNeededPermissions.add(permission);
+            }
+        }
+
+        if (!allNeededPermissions.isEmpty()) {
+            ActivityCompat.requestPermissions(
+                    getActivity(), allNeededPermissions.toArray(new String[0]), PERMISSION_REQUESTS);
+        }
+    }
+
+    private boolean allPermissionsGranted() {
+        for (String permission : getRequiredPermissions()) {
+            if (!isPermissionGranted(getActivity(), permission)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private String[] getRequiredPermissions() {
+        try {
+            PackageInfo info =
+                    getActivity().getPackageManager()
+                            .getPackageInfo(getActivity().getPackageName(), PackageManager.GET_PERMISSIONS);
+            String[] ps = info.requestedPermissions;
+            if (ps != null && ps.length > 0) {
+                return ps;
+            } else {
+                return new String[0];
+            }
+        } catch (Exception e) {
+            return new String[0];
+        }
+    }
+
+    private static boolean isPermissionGranted(Context context, String permission) {
+        if (ContextCompat.checkSelfPermission(context, permission)
+                == PackageManager.PERMISSION_GRANTED) {
+            Log.i(TAG, "Permission granted: " + permission);
+            return true;
+        }
+        Log.i(TAG, "Permission NOT granted: " + permission);
+        return false;
+    }
+
 }
+

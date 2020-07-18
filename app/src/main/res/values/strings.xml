@@ -21,6 +21,8 @@
     <string name="new_note">New Note</string>
     <string name="show_subtitle">Show Subtitle</string>
     <string name="hide_subtitle">Hide Subtitle</string>
+    <string name="category_sort">Sort by Category</string>
+    <string name="datetime_sort">Sort by Date</string>
     <string name="subtitle">Remember Everything</string>
     <string name="delete_note">Delete</string>
     <string name="notes_deleted">Note(s) Deleted</string>
